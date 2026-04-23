@@ -20,7 +20,7 @@ import { Divider } from "@components/Divider";
 import { FormSwitch } from "@components/FormSwitch";
 import { Margins } from "@utils/margins";
 import { ModalCloseButton, ModalContent, ModalHeader, ModalProps, ModalRoot } from "@utils/modal";
-import { Forms, SearchableSelect, useMemo } from "@webpack/common";
+import { Forms, SearchableSelect, TextInput, useMemo } from "@webpack/common";
 
 import { settings } from "./settings";
 import { cl, getLanguages } from "./utils";
@@ -72,8 +72,65 @@ function AutoTranslateToggle() {
     );
 }
 
+function OpenAISettings() {
+    const { openaiApiKey, openaiBaseUrl, openaiModel, openaiSystemPrompt } = settings.use([
+        "openaiApiKey",
+        "openaiBaseUrl",
+        "openaiModel",
+        "openaiSystemPrompt"
+    ]);
+
+    return (
+        <>
+            <Divider className={Margins.bottom16} />
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">OpenAI API Key</Forms.FormTitle>
+                <TextInput
+                    type="password"
+                    value={openaiApiKey}
+                    placeholder="sk-..."
+                    onChange={v => settings.store.openaiApiKey = v}
+                />
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">OpenAI API Base URL</Forms.FormTitle>
+                <TextInput
+                    value={openaiBaseUrl}
+                    placeholder="https://api.openai.com/v1"
+                    onChange={v => settings.store.openaiBaseUrl = v}
+                />
+                <Forms.FormText type="description" className={Margins.top8}>
+                    Supports OpenAI-compatible APIs (e.g. Ollama, LM Studio, local proxies)
+                </Forms.FormText>
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">Model</Forms.FormTitle>
+                <TextInput
+                    value={openaiModel}
+                    placeholder="gpt-4o-mini"
+                    onChange={v => settings.store.openaiModel = v}
+                />
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">Custom System Prompt (optional)</Forms.FormTitle>
+                <TextInput
+                    value={openaiSystemPrompt}
+                    placeholder="Leave empty to use the default translation prompt"
+                    onChange={v => settings.store.openaiSystemPrompt = v}
+                />
+            </section>
+        </>
+    );
+}
+
 
 export function TranslateModal({ rootProps }: { rootProps: ModalProps; }) {
+    const service = settings.use(["service"]).service;
+
     return (
         <ModalRoot {...rootProps}>
             <ModalHeader className={cl("modal-header")}>
@@ -91,6 +148,8 @@ export function TranslateModal({ rootProps }: { rootProps: ModalProps; }) {
                         includeAuto={s.endsWith("Input")}
                     />
                 ))}
+
+                {service === "openai" && <OpenAISettings />}
 
                 <Divider className={Margins.bottom16} />
 

@@ -21,7 +21,7 @@ import { onlyOnce } from "@utils/onlyOnce";
 import { PluginNative } from "@utils/types";
 import { showToast, Toasts } from "@webpack/common";
 
-import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguages } from "./languages";
+import { DeeplLanguages, deeplLanguageToGoogleLanguage, GoogleLanguage, GoogleLanguages } from "./languages";
 import { resetLanguageDefaults, settings } from "./settings";
 
 export const cl = classNameFactory("vc-trans-");
@@ -45,17 +45,19 @@ export interface TranslationValue {
     text: string;
 }
 
-export const getLanguages = () => IS_WEB || settings.store.service === "google"
+export const getLanguages = () => IS_WEB || settings.store.service === "google" || settings.store.service === "openai"
     ? GoogleLanguages
     : DeeplLanguages;
 
 export async function translate(kind: "received" | "sent", text: string): Promise<TranslationValue> {
-    const translate = IS_WEB || settings.store.service === "google"
+    const translateFn = IS_WEB || settings.store.service === "google"
         ? googleTranslate
-        : deeplTranslate;
+        : settings.store.service === "openai"
+            ? openaiTranslate
+            : deeplTranslate;
 
     try {
-        return await translate(
+        return await translateFn(
             text,
             settings.store[`${kind}Input`],
             settings.store[`${kind}Output`]
@@ -151,5 +153,64 @@ async function deeplTranslate(text: string, sourceLang: string, targetLang: stri
     return {
         sourceLanguage: DeeplLanguages[src] ?? src,
         text: translations[0].text
+    };
+}
+
+interface OpenAIData {
+    choices: {
+        message: {
+            content: string;
+        };
+    }[];
+}
+
+async function openaiTranslate(text: string, sourceLang: string, targetLang: string): Promise<TranslationValue> {
+    const { openaiApiKey, openaiBaseUrl, openaiModel, openaiSystemPrompt } = settings.store;
+
+    const baseUrl = openaiBaseUrl || "https://api.openai.com/v1";
+    const model = openaiModel || "gpt-4o-mini";
+
+    const sourceLangName = sourceLang === "auto"
+        ? "the source language (auto-detect)"
+        : (GoogleLanguages[sourceLang as GoogleLanguage] ?? sourceLang);
+    const targetLangName = GoogleLanguages[targetLang as GoogleLanguage] ?? targetLang;
+
+    const systemPrompt = openaiSystemPrompt ||
+        `You are a professional translator. Translate the following text from ${sourceLangName} to ${targetLangName}. Output only the translated text, with no explanations or extra content.`;
+
+    const payload = JSON.stringify({
+        model,
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: text }
+        ],
+        temperature: 0.3
+    });
+
+    const { status, data } = await Native.makeOpenAITranslateRequest(baseUrl, openaiApiKey || "", payload);
+
+    switch (status) {
+        case 200:
+            break;
+        case -1:
+            throw "Failed to connect to OpenAI API: " + data;
+        case 401:
+            throw "Invalid OpenAI API key";
+        case 429:
+            throw "OpenAI API rate limit exceeded";
+        default:
+            throw new Error(`Failed to translate "${text}" (${sourceLang} -> ${targetLang})\n${status} ${data}`);
+    }
+
+    const result: OpenAIData = JSON.parse(data);
+    const translatedText = result.choices?.[0]?.message?.content?.trim();
+
+    if (!translatedText) {
+        throw new Error("No translation returned from OpenAI API");
+    }
+
+    return {
+        sourceLanguage: sourceLang === "auto" ? "Unknown" : (GoogleLanguages[sourceLang as GoogleLanguage] ?? sourceLang),
+        text: translatedText
     };
 }

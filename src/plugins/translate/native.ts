@@ -6,6 +6,30 @@
 
 import { IpcMainInvokeEvent } from "electron";
 
+export async function makeOpenAITranslateRequest(_: IpcMainInvokeEvent, baseUrl: string, apiKey: string, payload: string) {
+    const url = baseUrl.replace(/\/$/, "") + "/chat/completions";
+
+    try {
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json"
+        };
+        if (apiKey) {
+            headers["Authorization"] = `Bearer ${apiKey}`;
+        }
+
+        const res = await fetch(url, {
+            method: "POST",
+            headers,
+            body: payload
+        });
+
+        const data = await res.text();
+        return { status: res.status, data };
+    } catch (e) {
+        return { status: -1, data: String(e) };
+    }
+}
+
 export async function makeDeeplTranslateRequest(_: IpcMainInvokeEvent, pro: boolean, apiKey: string, payload: string) {
     const url = pro
         ? "https://api.deepl.com/v2/translate"

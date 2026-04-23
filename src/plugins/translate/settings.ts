@@ -52,7 +52,8 @@ export const settings = definePluginSettings({
         options: [
             { label: "Google Translate", value: "google", default: true },
             { label: "DeepL Free", value: "deepl" },
-            { label: "DeepL Pro", value: "deepl-pro" }
+            { label: "DeepL Pro", value: "deepl-pro" },
+            { label: "OpenAI Compatible", value: "openai" }
         ] as const,
         onChange: resetLanguageDefaults
     },
@@ -61,7 +62,35 @@ export const settings = definePluginSettings({
         description: "DeepL API key",
         default: "",
         placeholder: "Get your API key from https://deepl.com/your-account",
-        disabled: () => IS_WEB
+        disabled: () => IS_WEB || (settings.store.service !== "deepl" && settings.store.service !== "deepl-pro")
+    },
+    openaiApiKey: {
+        type: OptionType.STRING,
+        description: "OpenAI (compatible) API key",
+        default: "",
+        placeholder: "sk-...",
+        disabled: () => IS_WEB || settings.store.service !== "openai"
+    },
+    openaiBaseUrl: {
+        type: OptionType.STRING,
+        description: "OpenAI API base URL (supports OpenAI-compatible services)",
+        default: "https://api.openai.com/v1",
+        placeholder: "https://api.openai.com/v1",
+        disabled: () => IS_WEB || settings.store.service !== "openai"
+    },
+    openaiModel: {
+        type: OptionType.STRING,
+        description: "OpenAI model to use for translation",
+        default: "gpt-4o-mini",
+        placeholder: "gpt-4o-mini",
+        disabled: () => IS_WEB || settings.store.service !== "openai"
+    },
+    openaiSystemPrompt: {
+        type: OptionType.STRING,
+        description: "Custom system prompt for OpenAI translation (leave empty to use the default prompt)",
+        default: "",
+        placeholder: "You are a translator. Translate the following text...",
+        disabled: () => IS_WEB || settings.store.service !== "openai"
     },
     autoTranslate: {
         type: OptionType.BOOLEAN,
@@ -78,11 +107,11 @@ export const settings = definePluginSettings({
 }>();
 
 export function resetLanguageDefaults() {
-    if (IS_WEB || settings.store.service === "google") {
+    if (IS_WEB || settings.store.service === "google" || settings.store.service === "openai") {
         settings.store.receivedInput = "auto";
-        settings.store.receivedOutput = "zh-hans";
+        settings.store.receivedOutput = "zh-CN";
         settings.store.sentInput = "auto";
-        settings.store.sentOutput = "zh-hans";
+        settings.store.sentOutput = "zh-CN";
     } else {
         settings.store.receivedInput = "";
         settings.store.receivedOutput = "zh-hans";
