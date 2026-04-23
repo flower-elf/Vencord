@@ -193,11 +193,11 @@ async function openaiTranslate(text: string, sourceLang: string, targetLang: str
         case 200:
             break;
         case -1:
-            throw "Failed to connect to OpenAI API: " + data;
+            throw new Error("Failed to connect to OpenAI API: " + data);
         case 401:
-            throw "Invalid OpenAI API key";
+            throw new Error("Invalid OpenAI API key");
         case 429:
-            throw "OpenAI API rate limit exceeded";
+            throw new Error("OpenAI API rate limit exceeded");
         default:
             throw new Error(`Failed to translate "${text}" (${sourceLang} -> ${targetLang})\n${status} ${data}`);
     }

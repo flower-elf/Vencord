@@ -109,9 +109,9 @@ export const settings = definePluginSettings({
 export function resetLanguageDefaults() {
     if (IS_WEB || settings.store.service === "google" || settings.store.service === "openai") {
         settings.store.receivedInput = "auto";
-        settings.store.receivedOutput = "zh-CN";
+        settings.store.receivedOutput = "zh-hans";
         settings.store.sentInput = "auto";
-        settings.store.sentOutput = "zh-CN";
+        settings.store.sentOutput = "zh-hans";
     } else {
         settings.store.receivedInput = "";
         settings.store.receivedOutput = "zh-hans";
