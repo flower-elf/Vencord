@@ -80,7 +80,7 @@ export const settings = definePluginSettings({
 export function resetLanguageDefaults() {
     if (IS_WEB || settings.store.service === "google") {
         settings.store.receivedInput = "auto";
-        settings.store.receivedOutput = "en";
+        settings.store.receivedOutput = "zh-hans";
         settings.store.sentInput = "auto";
         settings.store.sentOutput = "zh-hans";
     } else {
