@@ -29,7 +29,7 @@ export const settings = definePluginSettings({
     receivedOutput: {
         type: OptionType.STRING,
         description: "Language that received messages should be translated to",
-        default: "en",
+        default: "zh-hans",
         hidden: true
     },
     sentInput: {
@@ -41,7 +41,7 @@ export const settings = definePluginSettings({
     sentOutput: {
         type: OptionType.STRING,
         description: "Language that your own messages should be translated to",
-        default: "en",
+        default: "zh-hans",
         hidden: true
     },
 
@@ -82,11 +82,11 @@ export function resetLanguageDefaults() {
         settings.store.receivedInput = "auto";
         settings.store.receivedOutput = "en";
         settings.store.sentInput = "auto";
-        settings.store.sentOutput = "en";
+        settings.store.sentOutput = "zh-hans";
     } else {
         settings.store.receivedInput = "";
-        settings.store.receivedOutput = "en-us";
+        settings.store.receivedOutput = "zh-hans";
         settings.store.sentInput = "";
-        settings.store.sentOutput = "en-us";
+        settings.store.sentOutput = "zh-hans";
     }
 }
