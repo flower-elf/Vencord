@@ -20,7 +20,7 @@ import { Divider } from "@components/Divider";
 import { FormSwitch } from "@components/FormSwitch";
 import { Margins } from "@utils/margins";
 import { ModalCloseButton, ModalContent, ModalHeader, ModalProps, ModalRoot } from "@utils/modal";
-import { Forms, SearchableSelect, useMemo } from "@webpack/common";
+import { Forms, SearchableSelect, TextArea, TextInput, useMemo, useState } from "@webpack/common";
 
 import { settings } from "./settings";
 import { cl, getLanguages } from "./utils";
@@ -72,6 +72,58 @@ function AutoTranslateToggle() {
     );
 }
 
+function OpenAISettings() {
+    const { openaiApiKey, openaiBaseUrl, openaiModel, openaiSystemPrompt } = settings.use([
+        "openaiApiKey", "openaiBaseUrl", "openaiModel", "openaiSystemPrompt"
+    ]);
+
+    return (
+        <>
+            <Divider className={Margins.bottom16} />
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">OpenAI API Key</Forms.FormTitle>
+                <TextInput
+                    type="password"
+                    value={openaiApiKey}
+                    placeholder="sk-..."
+                    onChange={v => settings.store.openaiApiKey = v}
+                />
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">API Base URL</Forms.FormTitle>
+                <TextInput
+                    value={openaiBaseUrl}
+                    placeholder="https://api.openai.com/v1"
+                    onChange={v => settings.store.openaiBaseUrl = v}
+                />
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">Model</Forms.FormTitle>
+                <TextInput
+                    value={openaiModel}
+                    placeholder="gpt-4o-mini"
+                    onChange={v => settings.store.openaiModel = v}
+                />
+            </section>
+
+            <section className={Margins.bottom16}>
+                <Forms.FormTitle tag="h3">System Prompt</Forms.FormTitle>
+                <Forms.FormText className={Margins.bottom8}>
+                    Use <code>{"{{targetLang}}"}</code> as placeholder for the target language name.
+                </Forms.FormText>
+                <TextArea
+                    value={openaiSystemPrompt}
+                    rows={4}
+                    onChange={v => settings.store.openaiSystemPrompt = v}
+                />
+            </section>
+        </>
+    );
+}
+
 
 export function TranslateModal({ rootProps }: { rootProps: ModalProps; }) {
     return (
@@ -95,6 +147,8 @@ export function TranslateModal({ rootProps }: { rootProps: ModalProps; }) {
                 <Divider className={Margins.bottom16} />
 
                 <AutoTranslateToggle />
+
+                {settings.store.service === "openai" && <OpenAISettings />}
             </ModalContent>
         </ModalRoot>
     );

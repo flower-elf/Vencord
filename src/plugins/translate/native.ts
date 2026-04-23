@@ -27,3 +27,23 @@ export async function makeDeeplTranslateRequest(_: IpcMainInvokeEvent, pro: bool
         return { status: -1, data: String(e) };
     }
 }
+
+export async function makeOpenAITranslateRequest(_: IpcMainInvokeEvent, baseUrl: string, apiKey: string, payload: string) {
+    const url = baseUrl.replace(/\/+$/, "") + "/chat/completions";
+
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: payload
+        });
+
+        const data = await res.text();
+        return { status: res.status, data };
+    } catch (e) {
+        return { status: -1, data: String(e) };
+    }
+}

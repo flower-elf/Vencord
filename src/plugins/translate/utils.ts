@@ -45,17 +45,19 @@ export interface TranslationValue {
     text: string;
 }
 
-export const getLanguages = () => IS_WEB || settings.store.service === "google"
-    ? GoogleLanguages
-    : DeeplLanguages;
+export const getLanguages = () => !IS_WEB && settings.store.service === "deepl" || !IS_WEB && settings.store.service === "deepl-pro"
+    ? DeeplLanguages
+    : GoogleLanguages;
 
 export async function translate(kind: "received" | "sent", text: string): Promise<TranslationValue> {
-    const translate = IS_WEB || settings.store.service === "google"
+    const translateFn = IS_WEB || settings.store.service === "google"
         ? googleTranslate
-        : deeplTranslate;
+        : !IS_WEB && settings.store.service === "openai"
+            ? openaiTranslate
+            : deeplTranslate;
 
     try {
-        return await translate(
+        return await translateFn(
             text,
             settings.store[`${kind}Input`],
             settings.store[`${kind}Output`]
@@ -151,5 +153,56 @@ async function deeplTranslate(text: string, sourceLang: string, targetLang: stri
     return {
         sourceLanguage: DeeplLanguages[src] ?? src,
         text: translations[0].text
+    };
+}
+
+interface OpenAIData {
+    choices: {
+        message: {
+            content: string;
+        };
+    }[];
+}
+
+async function openaiTranslate(text: string, sourceLang: string, targetLang: string): Promise<TranslationValue> {
+    const { openaiApiKey, openaiBaseUrl, openaiModel, openaiSystemPrompt } = settings.store;
+
+    if (!openaiApiKey) {
+        showToast("OpenAI API key is not set. Falling back to Google Translate", Toasts.Type.FAILURE);
+        return googleTranslate(text, sourceLang, targetLang);
+    }
+
+    const targetLangName = GoogleLanguages[targetLang] ?? targetLang;
+    const systemPrompt = openaiSystemPrompt.replace("{targetLang}", targetLangName);
+
+    const { status, data } = await Native.makeOpenAITranslateRequest(
+        openaiBaseUrl,
+        openaiApiKey,
+        JSON.stringify({
+            model: openaiModel,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: text }
+            ]
+        })
+    );
+
+    switch (status) {
+        case 200:
+            break;
+        case -1:
+            throw "Failed to connect to OpenAI API: " + data;
+        case 401:
+            throw "Invalid OpenAI API key";
+        default:
+            throw new Error(`OpenAI translation failed (${sourceLang} -> ${targetLang})\n${status} ${data}`);
+    }
+
+    const { choices }: OpenAIData = JSON.parse(data);
+    const sourceLangName = GoogleLanguages[sourceLang] ?? sourceLang;
+
+    return {
+        sourceLanguage: sourceLangName,
+        text: choices[0].message.content.trim()
     };
 }
