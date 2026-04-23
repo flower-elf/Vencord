@@ -47,7 +47,7 @@ jobs:
             - name: Package dist files into zips
               run: |
                   cd dist
-                  zip discord-desktop.zip patcher.js patcher.js.map renderer.js renderer.js.map preload.js preload.js.map
+                  zip release.zip patcher.js patcher.js.map renderer.js renderer.js.map preload.js preload.js.map
                   zip vesktop.zip vencordDesktopMain.js vencordDesktopMain.js.map vencordDesktopRenderer.js vencordDesktopRenderer.js.map vencordDesktopPreload.js vencordDesktopPreload.js.map
                   cd ..
 
@@ -59,7 +59,7 @@ jobs:
             - name: Upload DevBuild as release
               if: github.repository == 'flower-elf/Vencord'
               run: |
-                  gh release upload devbuild --clobber dist/discord-desktop.zip dist/vesktop.zip dist/extension-chrome.zip dist/extension-firefox.zip dist/Vencord.user.js dist/plugins.json dist/plugin-readmes.json
+                  gh release upload devbuild --clobber dist/release.zip dist/vesktop.zip dist/extension-chrome.zip dist/extension-firefox.zip dist/Vencord.user.js dist/plugins.json dist/plugin-readmes.json
                   gh release edit devbuild --title "DevBuild $RELEASE_TAG"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
