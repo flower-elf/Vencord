@@ -49,7 +49,7 @@ jobs:
             - name: Package dist files into zips
               run: |
                   cd dist
-                  zip release.zip patcher.js patcher.js.map patcher.js.LEGAL.txt renderer.js renderer.js.map renderer.js.LEGAL.txt renderer.css renderer.css.map preload.js preload.js.map
+                  zip Vencord-custom.zip patcher.js patcher.js.map patcher.js.LEGAL.txt renderer.js renderer.js.map renderer.js.LEGAL.txt renderer.css renderer.css.map preload.js preload.js.map
                   zip vesktop.zip vencordDesktopMain.js vencordDesktopMain.js.map vencordDesktopRenderer.js vencordDesktopRenderer.js.map vencordDesktopPreload.js vencordDesktopPreload.js.map
                   cd ..
 
