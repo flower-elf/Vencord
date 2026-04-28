@@ -11,9 +11,7 @@ on:
             - package.json
             - pnpm-lock.yaml
 permissions:
-  actions: write
-  packages: write
-  artifact-metadata: write
+  contents: write
 env:
     FORCE_COLOR: true
 
