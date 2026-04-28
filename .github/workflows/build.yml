@@ -45,6 +45,13 @@ jobs:
             - name: Clean up obsolete files
               run: |
                   rm -rf dist/*-unpacked dist/vendor Vencord.user.css vencordDesktopRenderer.css vencordDesktopRenderer.css.map
+                  
+            - name: Package dist files into zips
+              run: |
+                  cd dist
+                  zip release.zip patcher.js patcher.js.map patcher.js.LEGAL.txt renderer.js renderer.js.map renderer.js.LEGAL.txt renderer.css renderer.css.map preload.js preload.js.map
+                  zip vesktop.zip vencordDesktopMain.js vencordDesktopMain.js.map vencordDesktopRenderer.js vencordDesktopRenderer.js.map vencordDesktopPreload.js vencordDesktopPreload.js.map
+                  cd ..
 
             - name: Get some values needed for the release
               id: release_values
@@ -54,7 +61,7 @@ jobs:
             - name: Upload DevBuild as release
               if: github.repository == 'flower-elf/Vencord'
               run: |
-                  gh release upload devbuild --clobber dist/*
+                  gh release upload devbuild --clobber dist/Vencord-custom.zip dist/vesktop.zip dist/extension-chrome.zip dist/extension-firefox.zip dist/Vencord.user.js dist/plugins.json dist/plugin-readmes.json
                   gh release edit devbuild --title "DevBuild $RELEASE_TAG"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
